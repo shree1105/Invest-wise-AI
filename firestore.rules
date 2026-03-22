@@ -1,0 +1,161 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (uid)
+    // Fields:
+    //   - uid: string (required, immutable)
+    //   - email: string (required, immutable)
+    //   - displayName: string (optional)
+    //   - role: string (required, enum: ['admin', 'user'])
+    //
+    // Collection: profiles
+    // Document ID: userId (uid)
+    // Fields:
+    //   - uid: string (required, immutable)
+    //   - income: number (required, positive)
+    //   - age: number (required, positive)
+    //   - savings: number (required, positive)
+    //   - riskTolerance: string (required, enum: ['low', 'medium', 'high'])
+    //   - riskScore: number (required, range: 0-100)
+    //   - updatedAt: timestamp (required)
+    //
+    // Collection: investments
+    // Document ID: investmentId
+    // Fields:
+    //   - uid: string (required, immutable)
+    //   - type: string (required, enum: ['Stocks', 'Mutual Funds', 'Fixed Deposits'])
+    //   - amount: number (required, positive)
+    //   - tenure: number (required, positive)
+    //   - expectedReturn: number (required)
+    //   - date: timestamp (required)
+    //
+    // Collection: recommendations
+    // Document ID: recommendationId
+    // Fields:
+    //   - uid: string (required, immutable)
+    //   - type: string (required, enum: ['Stocks', 'Mutual Funds', 'Fixed Deposits'])
+    //   - reason: string (required)
+    //   - predictedReturn: number (required)
+    //   - date: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "shreeb766@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasRequiredFields(['uid', 'email', 'role']) &&
+             hasOnlyAllowedFields(['uid', 'email', 'displayName', 'role']) &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.email is string && isValidEmail(data.email) &&
+             data.role in ['admin', 'user'];
+    }
+
+    function isValidProfile(data) {
+      return hasRequiredFields(['uid', 'income', 'age', 'savings', 'riskTolerance', 'riskScore', 'updatedAt']) &&
+             hasOnlyAllowedFields(['uid', 'income', 'age', 'savings', 'riskTolerance', 'riskScore', 'updatedAt']) &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.income is number && data.income >= 0 &&
+             data.age is number && data.age >= 0 &&
+             data.savings is number && data.savings >= 0 &&
+             data.riskTolerance in ['low', 'medium', 'high'] &&
+             data.riskScore is number && data.riskScore >= 0 && data.riskScore <= 100 &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidInvestment(data) {
+      return hasRequiredFields(['uid', 'type', 'amount', 'tenure', 'expectedReturn', 'date']) &&
+             hasOnlyAllowedFields(['uid', 'type', 'amount', 'tenure', 'expectedReturn', 'date']) &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.type in ['Stocks', 'Mutual Funds', 'Fixed Deposits'] &&
+             data.amount is number && data.amount > 0 &&
+             data.tenure is number && data.tenure > 0 &&
+             data.expectedReturn is number &&
+             data.date is timestamp;
+    }
+
+    function isValidRecommendation(data) {
+      return hasRequiredFields(['uid', 'type', 'reason', 'predictedReturn', 'date']) &&
+             hasOnlyAllowedFields(['uid', 'type', 'reason', 'predictedReturn', 'date']) &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.type in ['Stocks', 'Mutual Funds', 'Fixed Deposits'] &&
+             data.reason is string && data.reason.size() > 0 && data.reason.size() < 1000 &&
+             data.predictedReturn is number &&
+             data.date is timestamp;
+    }
+
+    // ===============================================================
+    // Match Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && (isOwner(userId) && request.resource.data.role == 'user' || isAdmin());
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && (isOwner(userId) && request.resource.data.role == resource.data.role || isAdmin());
+    }
+
+    match /profiles/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidProfile(request.resource.data);
+      allow update: if isOwner(userId) && isValidProfile(request.resource.data);
+    }
+
+    match /investments/{investmentId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid && isValidInvestment(request.resource.data);
+      allow update: if isDocOwner() && isValidInvestment(request.resource.data) && request.resource.data.uid == resource.data.uid;
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /recommendations/{recommendationId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid && isValidRecommendation(request.resource.data);
+      allow update: if isDocOwner() && isValidRecommendation(request.resource.data) && request.resource.data.uid == resource.data.uid;
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "The user's profile information.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique identifier for the user." },
+        "email": { "type": "string", "format": "email", "description": "The user's email address." },
+        "displayName": { "type": "string", "description": "The user's display name." },
+        "role": { "type": "string", "enum": ["admin", "user"], "description": "The user's role." }
+      },
+      "required": ["uid", "email"]
+    },
+    "FinancialProfile": {
+      "title": "FinancialProfile",
+      "description": "The user's financial profile and risk tolerance.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique identifier for the user." },
+        "income": { "type": "number", "description": "The user's annual income." },
+        "age": { "type": "number", "description": "The user's age." },
+        "savings": { "type": "number", "description": "The user's current savings." },
+        "riskTolerance": { "type": "string", "enum": ["low", "medium", "high"], "description": "The user's risk tolerance level." },
+        "riskScore": { "type": "number", "description": "The calculated risk score (0-100)." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "The last time the profile was updated." }
+      },
+      "required": ["uid", "income", "age", "savings", "riskTolerance", "riskScore"]
+    },
+    "Investment": {
+      "title": "Investment",
+      "description": "A record of an investment made by the user.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique identifier for the user." },
+        "type": { "type": "string", "enum": ["Stocks", "Mutual Funds", "Fixed Deposits"], "description": "The type of investment." },
+        "amount": { "type": "number", "description": "The amount invested." },
+        "tenure": { "type": "number", "description": "The investment tenure in years." },
+        "expectedReturn": { "type": "number", "description": "The expected return percentage." },
+        "date": { "type": "string", "format": "date-time", "description": "The date of the investment." }
+      },
+      "required": ["uid", "type", "amount", "tenure", "expectedReturn", "date"]
+    },
+    "Recommendation": {
+      "title": "Recommendation",
+      "description": "An investment recommendation generated for the user.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique identifier for the user." },
+        "type": { "type": "string", "enum": ["Stocks", "Mutual Funds", "Fixed Deposits"], "description": "The recommended investment type." },
+        "reason": { "type": "string", "description": "The reason for the recommendation." },
+        "predictedReturn": { "type": "number", "description": "The ML-predicted return percentage." },
+        "date": { "type": "string", "format": "date-time", "description": "The date the recommendation was generated." }
+      },
+      "required": ["uid", "type", "reason", "predictedReturn", "date"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "The user's profile document."
+    },
+    "/profiles/{userId}": {
+      "schema": "FinancialProfile",
+      "description": "The user's financial profile document."
+    },
+    "/investments/{investmentId}": {
+      "schema": "Investment",
+      "description": "A record of an investment."
+    },
+    "/recommendations/{recommendationId}": {
+      "schema": "Recommendation",
+      "description": "A generated recommendation."
+    }
+  }
+}
