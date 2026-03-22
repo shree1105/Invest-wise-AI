@@ -120,5 +120,3 @@ firebase deploy --only firestore:rules
 - `GET /api/stock-prices`: Fetches real-time stock quotes from Yahoo Finance.
 - `GET /api/market-insights`: Retrieves global market status from Alpha Vantage.
 
-## 📄 License
-This project is licensed under the MIT License.
