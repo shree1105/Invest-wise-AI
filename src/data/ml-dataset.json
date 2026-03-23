@@ -1,0 +1,12 @@
+[
+  { "income": 50000, "age": 25, "risk_score": 3, "investment_amount": 5000, "tenure": 5, "predicted_return": 6.5 },
+  { "income": 75000, "age": 30, "risk_score": 5, "investment_amount": 10000, "tenure": 10, "predicted_return": 8.2 },
+  { "income": 120000, "age": 45, "risk_score": 2, "investment_amount": 50000, "tenure": 15, "predicted_return": 5.1 },
+  { "income": 200000, "age": 35, "risk_score": 8, "investment_amount": 100000, "tenure": 5, "predicted_return": 12.4 },
+  { "income": 45000, "age": 22, "risk_score": 4, "investment_amount": 2000, "tenure": 3, "predicted_return": 7.1 },
+  { "income": 90000, "age": 50, "risk_score": 1, "investment_amount": 25000, "tenure": 20, "predicted_return": 4.5 },
+  { "income": 150000, "age": 28, "risk_score": 7, "investment_amount": 75000, "tenure": 8, "predicted_return": 10.8 },
+  { "income": 60000, "age": 32, "risk_score": 6, "investment_amount": 15000, "tenure": 12, "predicted_return": 9.3 },
+  { "income": 85000, "age": 40, "risk_score": 3, "investment_amount": 30000, "tenure": 10, "predicted_return": 6.8 },
+  { "income": 110000, "age": 38, "risk_score": 5, "investment_amount": 40000, "tenure": 7, "predicted_return": 8.5 }
+]
