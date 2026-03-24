@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../AuthContext';
 import { logout } from '../firebase';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, TrendingUp, User as UserIcon, LogOut, Wallet, PieChart, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, User as UserIcon, LogOut, Wallet, PieChart, ShieldCheck, FlaskConical } from 'lucide-react';
 import { motion } from 'motion/react';
 
 const SidebarItem: React.FC<{ to: string; icon: React.ReactNode; label: string; active: boolean }> = ({ to, icon, label, active }) => (
@@ -21,12 +21,10 @@ const SidebarItem: React.FC<{ to: string; icon: React.ReactNode; label: string; 
 );
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, profile } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   const location = useLocation();
 
   if (!user) return <>{children}</>;
-
-  const isAdmin = profile?.role === 'admin';
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex">
@@ -47,6 +45,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <SidebarItem to="/profile" icon={<UserIcon size={20} />} label="Financial Profile" active={location.pathname === '/profile'} />
           <SidebarItem to="/recommendations" icon={<PieChart size={20} />} label="Recommendations" active={location.pathname === '/recommendations'} />
           <SidebarItem to="/portfolio" icon={<Wallet size={20} />} label="Portfolio" active={location.pathname === '/portfolio'} />
+
+          {/* Admin-only ML Tools section */}
+          {isAdmin && (
+            <>
+              <div className="pt-2 pb-1">
+                <p className="px-4 text-[10px] text-zinc-600 uppercase font-bold tracking-widest">ML Tools</p>
+              </div>
+              <SidebarItem to="/model-evaluation" icon={<FlaskConical size={20} />} label="Model Evaluation" active={location.pathname === '/model-evaluation'} />
+            </>
+          )}
         </nav>
 
         <div className="mt-auto pt-6 border-t border-zinc-800">
