@@ -1,25 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../AuthContext';
 import { db } from '../firebase';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { motion } from 'motion/react';
 import { Users, TrendingUp, ShieldCheck, Activity, Globe, MessageSquare } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
-  const { user, profile } = useAuth();
+  const { isAdmin } = useAuth();
   const [users, setUsers] = useState<any[]>([]);
   const [marketInsights, setMarketInsights] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (profile?.role !== 'admin') return;
+    if (!isAdmin) return;
 
-    // Fetch all users
     const unsubUsers = onSnapshot(collection(db, 'users'), (snap) => {
       setUsers(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
-    // Fetch market insights from our API
     const fetchInsights = async () => {
       try {
         const res = await fetch('/api/market-insights');
@@ -34,9 +32,11 @@ const AdminDashboard: React.FC = () => {
     fetchInsights();
 
     return () => unsubUsers();
-  }, [profile]);
+  }, [isAdmin]);
 
-  if (profile?.role !== 'admin') {
+  // AdminRoute in App.tsx already redirects non-admins,
+  // this is just a safety fallback render
+  if (!isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
         <ShieldCheck size={64} className="text-red-500" />
@@ -133,7 +133,7 @@ const AdminDashboard: React.FC = () => {
             <MessageSquare className="text-emerald-500" size={20} />
             <span>Market Intelligence</span>
           </h3>
-          
+
           <div className="space-y-6">
             {marketInsights ? (
               <div className="space-y-4">
